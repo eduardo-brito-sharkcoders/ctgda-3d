@@ -47,6 +47,7 @@ public partial class EnemySentinel : CharacterBody3D
         }
     }
 
+    // Alterar para dar trigger quando o inimigo "tocar" no player
     private void _on_Area3D_body_entered(Node body)
     {
         if (body is PlayerController player)
