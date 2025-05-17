@@ -20,6 +20,8 @@ public partial class PlayerController : CharacterBody3D
 
     public override void _PhysicsProcess(double delta)
     {
+        // Input Map: WASD ("move_left", "move_right", "move_forward", "move_back") + Espaço ("jump")
+    
         Vector2 input = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
 
         Vector3 direction = new Vector3(input.X, 0, input.Y).Normalized();
