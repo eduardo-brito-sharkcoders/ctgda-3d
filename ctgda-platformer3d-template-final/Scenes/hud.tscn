@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://3pf8kr0seprq"]
+
+[node name="HUD" type="CanvasLayer"]
+
+[node name="Coin" type="TextureRect" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HealthManager" type="Node" parent="."]
+
+[node name="Heart1" type="TextureRect" parent="HealthManager"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Heart2" type="TextureRect" parent="HealthManager"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Heart3" type="TextureRect" parent="HealthManager"]
+offset_right = 40.0
+offset_bottom = 40.0

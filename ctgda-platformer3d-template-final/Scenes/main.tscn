@@ -1,0 +1,38 @@
+[gd_scene load_steps=8 format=3 uid="uid://tdf77pn6e7dw"]
+
+[ext_resource type="PackedScene" uid="uid://biq4xmtq1fmb5" path="res://Scenes/player.tscn" id="1_m20hp"]
+[ext_resource type="PackedScene" uid="uid://d3xfdln1k5d5j" path="res://Scenes/platform.tscn" id="2_ettj6"]
+[ext_resource type="PackedScene" uid="uid://brsgm21aca7c1" path="res://Scenes/goal.tscn" id="3_nm1f4"]
+[ext_resource type="PackedScene" uid="uid://b025h5p3i67fq" path="res://Scenes/enemy_sentinel.tscn" id="4_mg5wi"]
+[ext_resource type="PackedScene" uid="uid://biuy5hf0dnbeu" path="res://Scenes/coin.tscn" id="5_ndkhl"]
+[ext_resource type="PackedScene" uid="uid://3pf8kr0seprq" path="res://Scenes/hud.tscn" id="6_r4qlk"]
+[ext_resource type="PackedScene" uid="uid://bgced711riyn1" path="res://Scenes/camera_follow.tscn" id="7_e0t5u"]
+
+[node name="Main" type="Node3D"]
+
+[node name="CameraFollow" parent="." node_paths=PackedStringArray("Target") instance=ExtResource("7_e0t5u")]
+transform = Transform3D(1, 0, 0, 0, 0.95238, 0.304914, 0, -0.304914, 0.95238, 0, 0, 0)
+Target = NodePath("../Player")
+Offset = Vector3(0, 2, 2.5)
+
+[node name="Player" parent="." instance=ExtResource("1_m20hp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1)
+
+[node name="Goal" parent="." instance=ExtResource("3_nm1f4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.48391, -7.68235)
+
+[node name="Enemy" parent="." instance=ExtResource("4_mg5wi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -3.909)
+
+[node name="Coin" parent="." instance=ExtResource("5_ndkhl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.952886, -0.541789)
+
+[node name="HUD" parent="." instance=ExtResource("6_r4qlk")]
+
+[node name="Platform" parent="." instance=ExtResource("2_ettj6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.07525, -7.67082)
+
+[node name="Platform2" parent="." instance=ExtResource("2_ettj6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4859, -3.5876)
+
+[node name="Platform3" parent="." instance=ExtResource("2_ettj6")]

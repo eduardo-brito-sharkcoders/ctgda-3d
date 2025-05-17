@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://biq4xmtq1fmb5"]
+
+[ext_resource type="Script" path="res://Scripts/PlayerController.cs" id="1_p8s15"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_61agt"]
+albedo_color = Color(0, 0.576471, 0, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_unjys"]
+material = SubResource("StandardMaterial3D_61agt")
+size = Vector3(0.5, 0.5, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ui2r1"]
+size = Vector3(0.5, 0.5, 0.5)
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1_p8s15")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_unjys")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_ui2r1")
+
+[node name="Marker3D" type="Marker3D" parent="."]

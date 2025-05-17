@@ -1,0 +1,30 @@
+[gd_scene load_steps=6 format=3 uid="uid://b025h5p3i67fq"]
+
+[ext_resource type="Script" path="res://Scripts/EnemySentinel.cs" id="1_im3jh"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iviil"]
+albedo_color = Color(0.65098, 0, 0, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cb5mv"]
+material = SubResource("StandardMaterial3D_iviil")
+size = Vector3(0.5, 0.5, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_okths"]
+size = Vector3(0.5, 0.5, 0.5)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lswlc"]
+size = Vector3(0.5, 0.5, 0.5)
+
+[node name="EnemySentinel" type="CharacterBody3D"]
+script = ExtResource("1_im3jh")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_cb5mv")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_okths")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("BoxShape3D_lswlc")
