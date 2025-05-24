@@ -1,114 +1,177 @@
-/*using Godot;
-
-public partial class EnemySentinel : CharacterBody3D
-{
-    [Export] public float Speed = 2f;
-    [Export] public float Gravity = -30f;
-
-    [Export] public float LeftLimit = -1.15f;
-    [Export] public float RightLimit = 1.15f;
-
-
-    private Vector3 _velocity;
-    private int _direction = 1; // 1 = right, -1 = left
-    private float _startX;
-
-    public override void _Ready()
-    {
-        _startX = GlobalTransform.Origin.X;
-    }
-
-    public override void _PhysicsProcess(double delta)
-    {
-        // Gravity
-        if (!IsOnFloor())
-            _velocity.Y += Gravity * (float)delta;
-        else
-            _velocity.Y = 0;
-
-        // X-axis movement
-        _velocity.X = _direction * Speed;
-
-        // Apply movement
-        Velocity = _velocity;
-        MoveAndSlide();
-
-        // Get current X relative to start
-        float relativeX = GlobalTransform.Origin.X - _startX;
-
-        // Check patrol bounds
-        if (relativeX > RightLimit)
-        {
-            _direction = -1;
-        }
-        else if (relativeX < LeftLimit)
-        {
-            _direction = 1;
-        }
-    }
-
-    private void _on_area_3d_area_entered(Node body)
-    {
-        if (body is PlayerController player)
-        {
-            GD.Print("Damage!");
-            player.TakeDamage(1);
-        }
-    }
-}
-*/
+/*
+using System;
 using Godot;
 
-public partial class EnemySentinel : CharacterBody3D
+public partial class PlayerController : CharacterBody3D
 {
-    [Export] public float Speed = 2f;
+    [Export] public float Speed = 6f;
+    [Export] public float JumpForce = 12f;
     [Export] public float Gravity = -30f;
-    [Export] public float LeftLimit = -1.15f;
-    [Export] public float RightLimit = 1.15f;
+
+    [Export] public int MaxHealth = 5;
+    private int _currentHealth = 0;
+    private int _score = 0;
 
     private Vector3 _velocity;
-    private int _direction = 1;
-    private float _startX;
 
     public override void _Ready()
     {
-        _startX = GlobalTransform.Origin.X;
+        _currentHealth = MaxHealth;
     }
 
     public override void _PhysicsProcess(double delta)
     {
-        // Apply gravity
+        Vector2 input = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+
+        Vector3 direction = new Vector3(input.X, 0, input.Y).Normalized();
+        Vector3 movement = GlobalTransform.Basis * direction;
+        movement.Y = 0;
+        movement = movement.Normalized();
+
+        _velocity.X = movement.X * Speed;
+        _velocity.Z = movement.Z * Speed;
+
+        if (!IsOnFloor())
+        {
+            _velocity.Y += Gravity * (float)delta;
+        }
+        else if (Input.IsActionJustPressed("jump"))
+        {
+            _velocity.Y = JumpForce;
+        }
+
+        Velocity = _velocity;
+        MoveAndSlide();
+    }
+
+    public void TakeDamage(int amount)
+    {
+        _currentHealth -= amount;
+        GD.Print("Player took damage. Health: " + _currentHealth);
+
+        if (_currentHealth <= 0)
+        {
+            GD.Print("Player died. Restarting level...");
+            GetTree().ReloadCurrentScene();
+        }
+    }
+
+    public void AddScore(int amount)
+    {
+        _score += amount;
+        GD.Print("Score: " + _score);
+    }
+
+    // Optional accessors
+    public int GetScore() => _score;
+    public int GetHealth() => _currentHealth;
+}
+*/
+
+using Godot;
+
+public partial class PlayerController : CharacterBody3D
+{
+    [Export] public float Speed = 6f;
+    [Export] public float JumpForce = 12f;
+    [Export] public float Gravity = -30f;
+
+    [Export] public int MaxHealth = 5;
+    [Export] public float InvincibilityDuration = 1.5f;
+    [Export] public float FlashInterval = 0.1f;
+
+    private int _currentHealth;
+    private int _score;
+    private bool _isInvincible = false;
+    private float _invincibilityTimer = 0f;
+    private float _flashTimer = 0f;
+
+    private MeshInstance3D _mesh;
+    private Vector3 _velocity;
+
+    public override void _Ready()
+    {
+        _currentHealth = MaxHealth;
+        _mesh = GetNode<MeshInstance3D>("MeshInstance3D"); // adjust path if needed
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        Vector2 input = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+        Vector3 direction = new Vector3(input.X, 0, input.Y).Normalized();
+        Vector3 movement = GlobalTransform.Basis * direction;
+        movement.Y = 0;
+        movement = movement.Normalized();
+
+        _velocity.X = movement.X * Speed;
+        _velocity.Z = movement.Z * Speed;
+
         if (!IsOnFloor())
             _velocity.Y += Gravity * (float)delta;
-        else
-            _velocity.Y = 0;
+        else if (Input.IsActionJustPressed("jump"))
+            _velocity.Y = JumpForce;
 
-        // X-axis movement
-        _velocity.X = _direction * Speed;
-
-        // Move and check collisions
         Velocity = _velocity;
         MoveAndSlide();
 
-        // Check for collision with player
-        for (int i = 0; i < GetSlideCollisionCount(); i++)
+        HandleInvincibility(delta);
+    }
+
+    public void TakeDamage(int amount)
+    {
+        if (_isInvincible)
+            return;
+
+        _currentHealth -= amount;
+        GD.Print($"Player took damage. Health: {_currentHealth}");
+
+        if (_currentHealth <= 0)
         {
-            KinematicCollision3D collision = GetSlideCollision(i);
-            if (collision.GetCollider() is PlayerController player)
-            {
-                player.TakeDamage(1);
-            }
+            GD.Print("Player died.");
+            GetTree().ReloadCurrentScene();
+            return;
         }
 
-        // Patrol limit logic
-        float relativeX = GlobalTransform.Origin.X - _startX;
-        if (relativeX > RightLimit)
+        StartInvincibility();
+    }
+
+    public void AddScore(int amount)
+    {
+        _score += amount;
+        GD.Print("Score: " + _score);
+    }
+
+    private void StartInvincibility()
+    {
+        _isInvincible = true;
+        _invincibilityTimer = InvincibilityDuration;
+        _flashTimer = FlashInterval;
+    }
+
+    private void HandleInvincibility(double delta)
+    {
+        if (!_isInvincible)
+            return;
+
+        _invincibilityTimer -= (float)delta;
+        _flashTimer -= (float)delta;
+
+        // Toggle visibility
+        if (_flashTimer <= 0f)
         {
-            _direction = -1;
+            _mesh.Visible = !_mesh.Visible;
+            _flashTimer = FlashInterval;
         }
-        else if (relativeX < LeftLimit)
+
+        if (_invincibilityTimer <= 0f)
         {
-            _direction = 1;
+            _isInvincible = false;
+            _mesh.Visible = true; // Make sure it's visible at the end
         }
     }
+
+    // Optional accessors
+    public int GetScore() => _score;
+    public int GetHealth() => _currentHealth;
 }
+
