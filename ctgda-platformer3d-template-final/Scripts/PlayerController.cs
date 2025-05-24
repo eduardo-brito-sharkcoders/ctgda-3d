@@ -1,69 +1,114 @@
-using System;
-using Godot;
+/*using Godot;
 
-public partial class PlayerController : CharacterBody3D
+public partial class EnemySentinel : CharacterBody3D
 {
-    [Export] public float Speed = 6f;
-    [Export] public float JumpForce = 12f;
+    [Export] public float Speed = 2f;
     [Export] public float Gravity = -30f;
 
-    [Export] public int MaxHealth = 5;
-    private int _currentHealth = 0;
-    private int _score = 0;
+    [Export] public float LeftLimit = -1.15f;
+    [Export] public float RightLimit = 1.15f;
+
 
     private Vector3 _velocity;
+    private int _direction = 1; // 1 = right, -1 = left
+    private float _startX;
 
     public override void _Ready()
     {
-        _currentHealth = MaxHealth;
+        _startX = GlobalTransform.Origin.X;
     }
 
     public override void _PhysicsProcess(double delta)
     {
-        // Input Map: WASD ("move_left", "move_right", "move_forward", "move_back") + Espaço ("jump")
-    
-        Vector2 input = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
-
-        Vector3 direction = new Vector3(input.X, 0, input.Y).Normalized();
-        Vector3 movement = GlobalTransform.Basis * direction;
-        movement.Y = 0;
-        movement = movement.Normalized();
-
-        _velocity.X = movement.X * Speed;
-        _velocity.Z = movement.Z * Speed;
-
+        // Gravity
         if (!IsOnFloor())
-        {
             _velocity.Y += Gravity * (float)delta;
-        }
-        else if (Input.IsActionJustPressed("jump"))
-        {
-            _velocity.Y = JumpForce;
-        }
+        else
+            _velocity.Y = 0;
 
+        // X-axis movement
+        _velocity.X = _direction * Speed;
+
+        // Apply movement
         Velocity = _velocity;
         MoveAndSlide();
-    }
 
-    public void TakeDamage(int amount)
-    {
-        _currentHealth -= amount;
-        GD.Print("Player took damage. Health: " + _currentHealth);
+        // Get current X relative to start
+        float relativeX = GlobalTransform.Origin.X - _startX;
 
-        if (_currentHealth <= 0)
+        // Check patrol bounds
+        if (relativeX > RightLimit)
         {
-            GD.Print("Player died. Restarting level...");
-            GetTree().ReloadCurrentScene();
+            _direction = -1;
+        }
+        else if (relativeX < LeftLimit)
+        {
+            _direction = 1;
         }
     }
 
-    public void AddScore(int amount)
+    private void _on_area_3d_area_entered(Node body)
     {
-        _score += amount;
-        GD.Print("Score: " + _score);
+        if (body is PlayerController player)
+        {
+            GD.Print("Damage!");
+            player.TakeDamage(1);
+        }
+    }
+}
+*/
+using Godot;
+
+public partial class EnemySentinel : CharacterBody3D
+{
+    [Export] public float Speed = 2f;
+    [Export] public float Gravity = -30f;
+    [Export] public float LeftLimit = -1.15f;
+    [Export] public float RightLimit = 1.15f;
+
+    private Vector3 _velocity;
+    private int _direction = 1;
+    private float _startX;
+
+    public override void _Ready()
+    {
+        _startX = GlobalTransform.Origin.X;
     }
 
-    // Optional accessors
-    public int GetScore() => _score;
-    public int GetHealth() => _currentHealth;
+    public override void _PhysicsProcess(double delta)
+    {
+        // Apply gravity
+        if (!IsOnFloor())
+            _velocity.Y += Gravity * (float)delta;
+        else
+            _velocity.Y = 0;
+
+        // X-axis movement
+        _velocity.X = _direction * Speed;
+
+        // Move and check collisions
+        Velocity = _velocity;
+        MoveAndSlide();
+
+        // Check for collision with player
+        for (int i = 0; i < GetSlideCollisionCount(); i++)
+        {
+            KinematicCollision3D collision = GetSlideCollision(i);
+            if (collision.GetCollider() is PlayerController player)
+            {
+                player.TakeDamage(1);
+            }
+        }
+
+        // Patrol limit logic
+        float relativeX = GlobalTransform.Origin.X - _startX;
+        if (relativeX > RightLimit)
+        {
+            _direction = -1;
+        }
+        else if (relativeX < LeftLimit)
+        {
+            _direction = 1;
+        }
+    }
 }
